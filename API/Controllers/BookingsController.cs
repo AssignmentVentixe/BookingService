@@ -1,5 +1,7 @@
-﻿using API.Interfaces;
+﻿using System.Security.Claims;
+using API.Interfaces;
 using API.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers; 
@@ -10,9 +12,16 @@ public class BookingsController(IBookingService bookingService) : ControllerBase
 {
     private readonly IBookingService _bookingService = bookingService;
 
-    [HttpGet("user/{userEmail}")]
-    public async Task<IActionResult> GetAllBookingsOnUser(string userEmail)
+
+    [Authorize]
+    [HttpGet]
+    public async Task<IActionResult> GetAllBookingsOnUser()
     {
+        var userEmail = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (string.IsNullOrEmpty(userEmail))
+            return Unauthorized();
+
         var bookings = await _bookingService.GetAllBookingsOnUserAsync(userEmail);
 
         return (bookings != null)
@@ -20,9 +29,15 @@ public class BookingsController(IBookingService bookingService) : ControllerBase
             : NotFound();
     }
 
+    [Authorize]
     [HttpGet("{id}")]
     public async Task<IActionResult> GetBookingById(string id)
     {
+        var userEmail = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (string.IsNullOrEmpty(userEmail))
+            return Unauthorized();
+
         var bookingModel = await _bookingService.GetByExpressionAsync(x => x.Id == id);
 
         return (bookingModel != null)
@@ -31,7 +46,7 @@ public class BookingsController(IBookingService bookingService) : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> Createbooking(BookingDto bookingDto)
+    public async Task<IActionResult> Createbooking(BookingRegisterDto bookingDto)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
@@ -42,6 +57,7 @@ public class BookingsController(IBookingService bookingService) : ControllerBase
             ? Ok(createdbooking)
             : BadRequest("Failed to create booking");
     }
+
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> Deletebooking(string id)
