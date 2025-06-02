@@ -7,10 +7,11 @@ using API.Models;
 
 namespace API.Services;
 
-public class BookingService(IBookingRepository bookingRepository, IHttpClientFactory httpClientFactory) : IBookingService
+public class BookingService(IBookingRepository bookingRepository, IHttpClientFactory httpClientFactory, IEmailService emailService) : IBookingService
 {
     private readonly IBookingRepository _bookingRepository = bookingRepository ?? throw new ArgumentNullException(nameof(bookingRepository));
     private readonly HttpClient _httpClient = httpClientFactory.CreateClient("EventService");
+    private readonly IEmailService _emailService = emailService;
 
     public async Task<IEnumerable<BookingWithEvent>> GetAllBookingsOnUserAsync(string userEmail)
     {
@@ -51,6 +52,19 @@ public class BookingService(IBookingRepository bookingRepository, IHttpClientFac
         }
 
         await _bookingRepository.CommitTransactionAsync();
+
+        try
+        {
+            var emailDto = registrationForm.MapTo<BookingConfirmationEmailDto>();
+            emailDto.Email = registrationForm.BookingEmail;
+
+            await _emailService.SendBookingConfirmationAsync(emailDto);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Failed to send booking confirmation email: {ex.Message}");
+        }
+
         return entity;
     }
 
@@ -73,9 +87,9 @@ public class BookingService(IBookingRepository bookingRepository, IHttpClientFac
         return true;
     }
 
-    public async Task<Booking> GetByExpressionAsync(Expression<Func<BookingEntity, bool>> expression)
+    public async Task<BookingWithEvent> GetByExpressionAsync(Expression<Func<BookingEntity, bool>> expression)
     {
         var entity = await _bookingRepository.GetAsync(expression);
-        return entity.MapTo<Booking>();
+        return entity.MapTo<BookingWithEvent>();
     }
 }

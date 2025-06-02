@@ -9,6 +9,6 @@ namespace API.Interfaces
         Task<BookingEntity> CreatebookingAsync(BookingRegisterDto registrationForm);
         Task<bool> DeleteBookingAsync(string id);
         Task<IEnumerable<BookingWithEvent>> GetAllBookingsOnUserAsync(string userEmail);
-        Task<Booking> GetByExpressionAsync(Expression<Func<BookingEntity, bool>> expression);
+        Task<BookingWithEvent> GetByExpressionAsync(Expression<Func<BookingEntity, bool>> expression);
     }
 }
