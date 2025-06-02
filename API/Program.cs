@@ -45,14 +45,14 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 Encoding.UTF8.GetBytes(
                     builder.Configuration["JwtKey"]!))
         };
-        options.Events = new JwtBearerEvents
-        {
-            OnMessageReceived = context =>
-            {
-                context.Token = context.Request.Cookies["jwt"];
-                return Task.CompletedTask;
-            }
-        };
+        //options.Events = new JwtBearerEvents
+        //{
+        //    OnMessageReceived = context =>
+        //    {
+        //        context.Token = context.Request.Cookies["jwt"];
+        //        return Task.CompletedTask;
+        //    }
+        //};
     });
 
 builder.Services.AddCors(o =>

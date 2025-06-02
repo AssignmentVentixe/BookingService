@@ -12,7 +12,6 @@ public class BookingsController(IBookingService bookingService) : ControllerBase
 {
     private readonly IBookingService _bookingService = bookingService;
 
-
     [Authorize]
     [HttpGet]
     public async Task<IActionResult> GetAllBookingsOnUser()
