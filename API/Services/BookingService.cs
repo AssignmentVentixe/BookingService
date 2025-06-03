@@ -2,15 +2,16 @@
 using System.Linq.Expressions;
 using API.Data.Entities;
 using API.Extensions;
+using API.Factories;
 using API.Interfaces;
 using API.Models;
 
 namespace API.Services;
 
-public class BookingService(IBookingRepository bookingRepository, IHttpClientFactory httpClientFactory, IEmailService emailService) : IBookingService
+public class BookingService(IBookingRepository bookingRepository, IEventApiService eventService, IEmailService emailService) : IBookingService
 {
     private readonly IBookingRepository _bookingRepository = bookingRepository ?? throw new ArgumentNullException(nameof(bookingRepository));
-    private readonly HttpClient _httpClient = httpClientFactory.CreateClient("EventService");
+    private readonly IEventApiService _eventService = eventService;
     private readonly IEmailService _emailService = emailService;
 
     public async Task<IEnumerable<BookingWithEvent>> GetAllBookingsOnUserAsync(string userEmail)
@@ -21,11 +22,7 @@ public class BookingService(IBookingRepository bookingRepository, IHttpClientFac
 
         foreach (var booking in bookings)
         {
-            var response = await _httpClient.GetAsync($"api/events/{booking.EventId}");
-            if (!response.IsSuccessStatusCode)
-                continue;
-
-            var eventDto = await response.Content.ReadFromJsonAsync<EventDto>();
+            var eventDto = await _eventService.GetEventByIdAsync(booking.EventId);
             if (eventDto == null)
                 continue;
 
@@ -42,8 +39,8 @@ public class BookingService(IBookingRepository bookingRepository, IHttpClientFac
         ArgumentNullException.ThrowIfNull(registrationForm);
 
         await _bookingRepository.BeginTransactionAsync();
-        var entity = registrationForm.MapTo<BookingEntity>();
-        await _bookingRepository.AddAsync(entity);
+        var entityToCreate = registrationForm.MapTo<BookingEntity>();
+        var entity = await _bookingRepository.AddAsync(entityToCreate);
 
         if (!await _bookingRepository.SaveAsync())
         {
@@ -55,10 +52,9 @@ public class BookingService(IBookingRepository bookingRepository, IHttpClientFac
 
         try
         {
-            var emailDto = registrationForm.MapTo<BookingConfirmationEmailDto>();
-            emailDto.Email = registrationForm.BookingEmail;
+            BookingConfirmationEmailDto dto = BookingConfirmationFactory.CreateDto(entity, registrationForm);
 
-            await _emailService.SendBookingConfirmationAsync(emailDto);
+            await _emailService.SendBookingConfirmationAsync(dto);
         }
         catch (Exception ex)
         {

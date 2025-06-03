@@ -16,6 +16,7 @@ builder.Services.AddDbContext<DataContext>(options =>options.UseSqlServer(builde
 
 builder.Services.AddScoped<IBookingRepository, BookingRepository>();
 builder.Services.AddScoped<IBookingService, BookingService>();
+builder.Services.AddScoped<IEventApiService, EventApiService>();
 builder.Services.AddTransient<IEmailService, EmailService>();
 
 builder.Services.AddHttpClient("EventService", client =>
@@ -45,14 +46,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 Encoding.UTF8.GetBytes(
                     builder.Configuration["JwtKey"]!))
         };
-        //options.Events = new JwtBearerEvents
-        //{
-        //    OnMessageReceived = context =>
-        //    {
-        //        context.Token = context.Request.Cookies["jwt"];
-        //        return Task.CompletedTask;
-        //    }
-        //};
     });
 
 builder.Services.AddCors(o =>
