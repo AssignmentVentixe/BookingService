@@ -11,6 +11,7 @@ public class BookingConfirmationFactory
         EventId = registrationForm.EventId,
         EventName = registrationForm.EventName,
         EventLocation = registrationForm.EventLocation,
+        EventDate = registrationForm.EventDate,
         BookedDate = entity.BookedDate,
     };
 }
