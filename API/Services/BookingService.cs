@@ -34,7 +34,7 @@ public class BookingService(IBookingRepository bookingRepository, IEventApiServi
         return result;
     }
 
-    public async Task<BookingEntity> CreatebookingAsync(BookingRegisterDto registrationForm)
+    public async Task<bool> CreatebookingAsync(BookingRegisterDto registrationForm)
     {
         ArgumentNullException.ThrowIfNull(registrationForm);
 
@@ -45,7 +45,7 @@ public class BookingService(IBookingRepository bookingRepository, IEventApiServi
         if (!await _bookingRepository.SaveAsync())
         {
             await _bookingRepository.RollbackTransactionAsync();
-            return null!;
+            return false;
         }
 
         await _bookingRepository.CommitTransactionAsync();
@@ -61,7 +61,7 @@ public class BookingService(IBookingRepository bookingRepository, IEventApiServi
             Debug.WriteLine($"Failed to send booking confirmation email: {ex.Message}");
         }
 
-        return entity;
+        return true;
     }
 
     public async Task<bool> DeleteBookingAsync(string id)

@@ -52,8 +52,8 @@ public class BookingsController(IBookingService bookingService) : ControllerBase
 
         var createdbooking = await _bookingService.CreatebookingAsync(bookingDto);
 
-        return (createdbooking != null)
-            ? Ok(createdbooking)
+        return (createdbooking)
+            ? Ok()
             : BadRequest("Failed to create booking");
     }
 

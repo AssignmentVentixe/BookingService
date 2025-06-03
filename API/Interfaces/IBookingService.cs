@@ -6,7 +6,7 @@ namespace API.Interfaces
 {
     public interface IBookingService
     {
-        Task<BookingEntity> CreatebookingAsync(BookingRegisterDto registrationForm);
+        Task<bool> CreatebookingAsync(BookingRegisterDto registrationForm);
         Task<bool> DeleteBookingAsync(string id);
         Task<IEnumerable<BookingWithEvent>> GetAllBookingsOnUserAsync(string userEmail);
         Task<BookingWithEvent> GetByExpressionAsync(Expression<Func<BookingEntity, bool>> expression);
